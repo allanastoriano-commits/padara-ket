@@ -677,7 +677,7 @@ async function pkSendAdminOtp(){
   const email=(document.getElementById('pkAdminEmail').value||'').trim().toLowerCase();
   if(email!==PK_ADMIN_EMAIL){alert('Please use the authorized PADARA KET Admin email.');return}
   try{
-    await pkAuthRequest('/auth/v1/otp',{email:email,create_user:true});
+    await pkAuthRequest('/auth/v1/otp',{email:email,create_user:true,redirect_to:'https://allanastoriano-commits.github.io/padara-ket/'});
     document.getElementById('pkAuthStatus').innerHTML='✓ SIGN-IN EMAIL SENT. CHECK YOUR EMAIL, THEN ENTER THE 6-DIGIT CODE IF PROVIDED.';
   }catch(err){document.getElementById('pkAuthStatus').innerHTML='⚠ '+err.message}
 }
