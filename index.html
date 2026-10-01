@@ -277,17 +277,7 @@ function renderManifest(){
 function printManifest(){
  renderManifest();
  let w=window.open('','_blank');
- w.document.write('<html><head><title>PADARA KET Delivery Manifest</title><style>body{font-family:Arial;padding:22px}h2{color:#f58220}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #888;padding:6px;text-align:left;vertical-align:top}small{color:#555}</style></head><body><h2>PADARA KET</h2><h3>Delivery / Parcel Manifest</h3><p><b>Date:</b> '+manifestDate.value+' &nbsp; | &nbsp; <b>Route:</b> '+manifestRoute.options[manifestRoute.selectedIndex].text+'</p>'+manifestReport.innerHTML+'<p style="margin-top:30px"><b>Prepared by:</b> ____________________ &nbsp;&nbsp; <b>Checked by:</b> ____________________</p>
-<script>
-window.addEventListener('load', function () {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
-      .catch(function (err) { console.warn('PADARA KET service worker registration failed:', err); });
-  }
-});
-</script>
-
-</body></html>');
+ w.document.write('<html><head><title>PADARA KET Delivery Manifest</title><style>body{font-family:Arial;padding:22px}h2{color:#f58220}table{width:100%;border-collapse:collapse;font-size:12px}th,td{border:1px solid #888;padding:6px;text-align:left;vertical-align:top}small{color:#555}</style></head><body><h2>PADARA KET</h2><h3>Delivery / Parcel Manifest</h3><p><b>Date:</b> '+manifestDate.value+' &nbsp; | &nbsp; <b>Route:</b> '+manifestRoute.options[manifestRoute.selectedIndex].text+'</p>'+manifestReport.innerHTML+'<p style="margin-top:30px"><b>Prepared by:</b> ____________________ &nbsp;&nbsp; <b>Checked by:</b> ____________________</p></body></html>');
  w.document.close();w.focus();w.print();
 }
 function localDateKey(d){let x=new Date(d);if(isNaN(x))return '';let y=x.getFullYear(),m=String(x.getMonth()+1).padStart(2,'0'),day=String(x.getDate()).padStart(2,'0');return y+'-'+m+'-'+day}
@@ -308,12 +298,7 @@ function renderDailyReport(){
 function printDailyReport(){
  renderDailyReport();
  let w=window.open('','_blank');
- w.document.write('<html><head><title>PADARA KET Daily Financial Report</title><style>body{font-family:Arial;padding:24px}h2{color:#f58220}table{width:100%;border-collapse:collapse}th,td{border:1px solid #999;padding:7px;text-align:left}small{color:#555}</style><style id="pk19css">
-.pk19done{margin-top:14px;padding:16px;border:2px solid #19723a;border-radius:14px;background:#f3fff6;color:#17231b}
-.pk19done h3{margin:0 0 8px;color:#176a35}.pk19badge{display:inline-block;background:#176a35;color:white;font-weight:900;padding:6px 10px;border-radius:999px;margin-bottom:10px}
-.pk19grid{display:grid;grid-template-columns:145px 1fr;gap:7px 10px;font-size:14px}.pk19lab{font-weight:800}
-@media(max-width:600px){.pk19grid{grid-template-columns:1fr;gap:2px}.pk19lab{margin-top:7px}}
-</style></head><body><h2>PADARA KET</h2><h3>Daily Financial Report</h3><p><b>Date:</b> '+reportDate.value+'</p>'+dailyReport.innerHTML+'<p style="margin-top:35px">Prepared by: ______________________________</p></body></html>');
+ w.document.write('<html><head><title>PADARA KET Daily Financial Report</title><style>body{font-family:Arial;padding:24px}h2{color:#f58220}table{width:100%;border-collapse:collapse}th,td{border:1px solid #999;padding:7px;text-align:left}small{color:#555}</style></head><body><h2>PADARA KET</h2><h3>Daily Financial Report</h3><p><b>Date:</b> '+reportDate.value+'</p>'+dailyReport.innerHTML+'<p style="margin-top:35px">Prepared by: ______________________________</p></body></html>');
  w.document.close(); w.focus(); w.print();
 }
 function setPayment(i,v){
@@ -1367,7 +1352,7 @@ window.addEventListener('DOMContentLoaded',()=>{
    let c=document.getElementById('pkChatCard');
    if(c&&!document.getElementById('pkChatNav')){
      let n=document.createElement('nav');n.id='pkChatNav';
-     n.innerHTML='<button onclick="pkChatGo(\\'home\\')"><span>⌂</span>HOME</button><button onclick="pkChatGo(\\'request\\')"><span>＋</span>REQUEST</button><button onclick="pkChatGo(\\'track\\')"><span>⌖</span>TRACK</button><button onclick="pkChatGo(\\'admin\\')"><span>⚙</span>PROFILE / ADMIN</button>';
+     n.innerHTML='<button onclick="pkChatGo(\'home\')"><span>⌂</span>HOME</button><button onclick="pkChatGo(\'request\')"><span>＋</span>REQUEST</button><button onclick="pkChatGo(\'track\')"><span>⌖</span>TRACK</button><button onclick="pkChatGo(\'admin\')"><span>⚙</span>PROFILE / ADMIN</button>';
      c.appendChild(n);
    }
  },500);
@@ -1393,7 +1378,7 @@ window.addEventListener('DOMContentLoaded',()=>{
   var c=document.getElementById('pkChatCard'); if(!c)return;
   var n=document.getElementById('pkChatNav');
   if(!n){n=document.createElement('nav');n.id='pkChatNav';c.appendChild(n);}
-  n.innerHTML='<button onclick="pkChatGo(\\'home\\')"><span>⌂</span>HOME</button><button onclick="pkChatGo(\\'request\\')"><span>＋</span>REQUEST</button><button onclick="pkChatGo(\\'track\\')"><span>⌖</span>TRACK</button><button onclick="pkChatGo(\\'admin\\')"><span>⚙</span>PROFILE / ADMIN</button>';
+  n.innerHTML='<button onclick="pkChatGo(\'home\')"><span>⌂</span>HOME</button><button onclick="pkChatGo(\'request\')"><span>＋</span>REQUEST</button><button onclick="pkChatGo(\'track\')"><span>⌖</span>TRACK</button><button onclick="pkChatGo(\'admin\')"><span>⚙</span>PROFILE / ADMIN</button>';
  }
  window.addEventListener('load',ensure);
  var old=window.pkOpenChat;
@@ -1970,5 +1955,14 @@ pkSyncAdminFromOnline = async function(){
     }
   }
 };
+</script>
+
+<script id="pk-pwa-registration">
+window.addEventListener('load', function () {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js', { scope: './' })
+      .catch(function (err) { console.warn('PADARA KET service worker registration failed:', err); });
+  }
+});
 </script>
 </body></html>
