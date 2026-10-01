@@ -1,0 +1,14 @@
+{
+  "name": "PADARA KET Online Delivery",
+  "short_name": "PADARA KET",
+  "description": "Padara Mo, Garantisado Ka! Online delivery service for Gamay, Northern Samar.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#f58220",
+  "icons": [
+    {"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}
