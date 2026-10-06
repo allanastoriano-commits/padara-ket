@@ -31,7 +31,7 @@ body{font-family:Arial;margin:0;background:#f4f4f4;color:#222}header{background:
 }
 </style><style id="pkBookRouteV11Style">
 #pkBookRouteV11{display:block!important;width:100%!important;padding:14px 12px!important;margin:0 0 14px!important;border:1px solid #bbb!important;border-radius:12px!important;background:#fff!important;color:#111!important;font-size:17px!important}
-</style><!-- PK27: online customer bookings + pending quotation admin panel -->
+</style><!-- PK28: navigation repair + persistent Online Admin session -->
 
 <style id="pk27-style">
 #pk27{margin:16px 0;padding:16px;border:3px solid #f58220;border-radius:18px;background:#fffaf4}
@@ -700,8 +700,8 @@ window.addEventListener('DOMContentLoaded',()=>{setTimeout(pkInstallAdminSyncBut
 <script>
 /* STEP 16B FIXED — SUPABASE ADMIN EMAIL LOGIN */
 const PK_ADMIN_EMAIL='allan.astoriano@deped.gov.ph';
-let pkAdminAccessToken=sessionStorage.getItem('pk_admin_access_token')||'';
-let pkAdminRefreshToken=sessionStorage.getItem('pk_admin_refresh_token')||'';
+let pkAdminAccessToken=localStorage.getItem('pk_admin_access_token')||'';
+let pkAdminRefreshToken=localStorage.getItem('pk_admin_refresh_token')||'';
 
 /* STEP 24B-2B — robust Supabase callback handler for GitHub Pages. */
 (function pk24b2bHandleAuthReturn(){
@@ -730,8 +730,8 @@ let pkAdminRefreshToken=sessionStorage.getItem('pk_admin_refresh_token')||'';
       }
       if(access){
         pkAdminAccessToken=access; pkAdminRefreshToken=refresh||pkAdminRefreshToken;
-        sessionStorage.setItem('pk_admin_access_token',pkAdminAccessToken);
-        if(pkAdminRefreshToken) sessionStorage.setItem('pk_admin_refresh_token',pkAdminRefreshToken);
+        localStorage.setItem('pk_admin_access_token',pkAdminAccessToken);
+        if(pkAdminRefreshToken) localStorage.setItem('pk_admin_refresh_token',pkAdminRefreshToken);
         sessionStorage.setItem('pk_admin_return','1');
         history.replaceState(null,'',location.pathname+'?pk_admin_return=1');
       }
@@ -772,15 +772,15 @@ async function pkRefreshAdminSession(){
     pkAdminAccessToken=data.access_token||'';
     pkAdminRefreshToken=data.refresh_token||pkAdminRefreshToken;
     if(!pkAdminAccessToken) return false;
-    sessionStorage.setItem('pk_admin_access_token',pkAdminAccessToken);
-    sessionStorage.setItem('pk_admin_refresh_token',pkAdminRefreshToken);
+    localStorage.setItem('pk_admin_access_token',pkAdminAccessToken);
+    localStorage.setItem('pk_admin_refresh_token',pkAdminRefreshToken);
     const st=document.getElementById('pkAuthStatus');
     if(st) st.innerHTML='✓ ONLINE ADMIN SESSION REFRESHED';
     return true;
   }catch(err){
     pkAdminAccessToken=''; pkAdminRefreshToken='';
-    sessionStorage.removeItem('pk_admin_access_token');
-    sessionStorage.removeItem('pk_admin_refresh_token');
+    localStorage.removeItem('pk_admin_access_token');
+    localStorage.removeItem('pk_admin_refresh_token');
     return false;
   }
 }
@@ -801,8 +801,8 @@ async function pkAdminOnlineRequest(path, options={}, retry=true){
   try{data=text?JSON.parse(text):null}catch(e){data=text}
   if(res.status===401){
     pkAdminAccessToken=''; pkAdminRefreshToken='';
-    sessionStorage.removeItem('pk_admin_access_token');
-    sessionStorage.removeItem('pk_admin_refresh_token');
+    localStorage.removeItem('pk_admin_access_token');
+    localStorage.removeItem('pk_admin_refresh_token');
   }
   if(!res.ok) throw new Error((data&&data.message)||text||('HTTP '+res.status));
   return data;
@@ -924,6 +924,40 @@ function pk27Install(){
   pk27RefreshAndCache().then(pk27LoadCustomerBookings);
 }
 window.addEventListener('load',()=>setTimeout(pk27Install,3900));
+
+
+/* PK28 — persistent Online Admin session */
+async function pk28RefreshAdminSession(){
+  const refresh=localStorage.getItem('pk_admin_refresh_token')||'';
+  if(!refresh) return false;
+  try{
+    const res=await fetch(PK_SB+'/auth/v1/token?grant_type=refresh_token',{
+      method:'POST',
+      headers:{'apikey':PK_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({refresh_token:refresh})
+    });
+    const data=await res.json();
+    if(!res.ok || !data.access_token) return false;
+    pkAdminAccessToken=data.access_token;
+    localStorage.setItem('pk_admin_access_token',data.access_token);
+    if(data.refresh_token)localStorage.setItem('pk_admin_refresh_token',data.refresh_token);
+    return true;
+  }catch(e){ return false; }
+}
+async function pk28EnsureAdminSession(){
+  if(pkAdminAccessToken) return true;
+  pkAdminAccessToken=localStorage.getItem('pk_admin_access_token')||'';
+  if(pkAdminAccessToken) return true;
+  return await pk28RefreshAdminSession();
+}
+function pk28AdminSignOut(){
+  if(!confirm('Sign out Online Admin on this device?')) return;
+  pkAdminAccessToken='';
+  localStorage.removeItem('pk_admin_access_token');
+  localStorage.removeItem('pk_admin_refresh_token');
+  alert('Online Admin signed out on this device.');
+  location.reload();
+}
 
 function pkInstallRealAdminAuth(){
   const old=document.getElementById('pkOnlineAdminStatus');
@@ -2197,6 +2231,34 @@ document.addEventListener('click',e=>{
  }
  function bind(){const b=document.getElementById("pkSubmitV18");if(b&&!b.dataset.v19){b.dataset.v19="1";b.addEventListener("click",run);}}
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();
+})();
+</script>
+
+<style id="pk28-navfix">
+.bottom-nav,.bottom-nav *{pointer-events:auto!important}
+.quick-actions,.quick-actions *{pointer-events:auto!important}
+</style>
+<script>
+/* PK28 — touch/navigation bridge using the app's own navigation controls. */
+(function(){
+  function norm(v){return String(v||'').replace(/\s+/g,' ').trim().toUpperCase();}
+  function findControl(labels, exclude){
+    const els=[...document.querySelectorAll('button,a,[role="button"],.nav-item')];
+    return els.find(el=>el!==exclude && labels.some(x=>norm(el.innerText||el.textContent)===x));
+  }
+  document.addEventListener('click',function(e){
+    const src=e.target.closest('button,a,[role="button"],.quick-action,.action-card');
+    if(!src)return;
+    const t=norm(src.innerText||src.textContent);
+    let labels=null;
+    if(t.startsWith('BOOK RIDER')) labels=['BOOK RIDER'];
+    else if(t.startsWith('SEND PARCEL')||t.startsWith('REQUEST DELIVERY')) labels=['REQUEST'];
+    else if(t.startsWith('TRACK ORDER')) labels=['TRACK'];
+    else if(t.startsWith('PROFILE/ADMIN')) labels=['PROFILE/ ADMIN','PROFILE / ADMIN','PROFILE/ADMIN'];
+    if(!labels)return;
+    const dest=findControl(labels,src);
+    if(dest){ e.preventDefault(); dest.click(); }
+  },true);
 })();
 </script>
 </body></html>
