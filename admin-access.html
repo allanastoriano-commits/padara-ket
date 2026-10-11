@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PADARA KET | Online Admin Sign-In</title>
+<style>
+*{box-sizing:border-box}body{font:17px Arial,sans-serif;background:#f5f4f2;margin:0;padding:24px 12px;color:#25282b}
+main{max-width:540px;margin:24px auto;background:white;border:2px solid #e97917;border-radius:17px;padding:22px}
+h1{color:#a9520a;font-size:25px;margin-top:0}p{line-height:1.5}
+button,a.action{display:block;text-align:center;width:100%;border:0;border-radius:11px;padding:16px;margin:12px 0;background:#e87916;color:#fff;font-size:17px;font-weight:bold;text-decoration:none}
+a.action{background:#176c39}a.action[aria-disabled=true]{pointer-events:none;background:#999}
+#message{background:#fff4e8;padding:14px;border-radius:10px;line-height:1.5;min-height:65px}
+small{display:block;line-height:1.5;color:#555;font-size:14px}
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script></head>
+<body><main><h1>PADARA KET<br>Online Admin Sign-In</h1>
+<p>This separate page verifies your Online Admin access. It does not change bookings or payments.</p>
+<div id="message" role="status" aria-live="polite">Checking your sign-in…</div>
+<button id="request" type="button">SEND SIGN-IN EMAIL LINK</button>
+<a id="return" class="action" aria-disabled="true" href="https://allanastoriano-commits.github.io/padara-ket/">OPEN PADARA KET</a>
+<small>Use the latest sign-in email. If your email link opens the PADARA KET homepage instead of returning here, do not request repeated links; tell us what happened.</small>
+</main>
+<script>
+(function(){
+'use strict';
+const project='https://dtgitcfrpfdqexdfczpr.supabase.co';
+const publicKey='sb_publishable_O5yMHBInDA6CJ-yO6wdZzg_iCOMHwsx';
+const adminEmail='allan.astoriano@deped.gov.ph';
+const redirect='https://allanastoriano-commits.github.io/padara-ket/admin-access.html';
+const message=document.getElementById('message');
+const button=document.getElementById('request');
+const returnLink=document.getElementById('return');
+let client,checking=false;
+function say(s){message.textContent=s;}
+function access(ok){returnLink.setAttribute('aria-disabled',ok?'false':'true');}
+async function check(){
+ if(!client||checking)return;
+ checking=true;
+ try{
+  const result=await client.auth.getSession();
+  if(result.error)throw result.error;
+  const session=result.data&&result.data.session;
+  if(!session||!session.access_token){access(false);say('NOT SIGNED IN. Request a sign-in email link only if you need one.');return;}
+  const u=await client.auth.getUser();
+  if(u.error)throw u.error;
+  const user=u.data&&u.data.user;
+  if(!user||String(user.email||'').toLowerCase()!==adminEmail){access(false);say('This is not the registered PADARA KET Admin account.');return;}
+  const role=await client.rpc('pk_is_admin');
+  if(role.error||role.data!==true){access(false);say('Signed in, but database Admin permission is not verified.');return;}
+  sessionStorage.setItem('pk_admin_access_token',session.access_token);
+  sessionStorage.setItem('pk_admin_refresh_token',session.refresh_token);
+  access(true);
+  say('SIGNED IN ONLINE — ADMIN VERIFIED. Tap OPEN PADARA KET to continue.');
+ }catch(e){access(false);say('Unable to verify session: '+String(e&&e.message||e));}
+ finally{checking=false;}
+}
+async function emailLink(){
+ if(!client){say('Sign-in connection is not ready.');return;}
+ button.disabled=true;say('Requesting sign-in email…');
+ try{
+  const r=await client.auth.signInWithOtp({email:adminEmail,options:{emailRedirectTo:redirect,shouldCreateUser:false}});
+  if(r.error)throw r.error;
+  say('Sign-in email requested. Open the newest email link in this browser. Do not request several links.');
+ }catch(e){say('Sign-in email was not sent: '+String(e&&e.message||e));}
+ finally{button.disabled=false;}
+}
+function start(){
+ if(!window.supabase||!window.supabase.createClient){say('Connection library did not load. Check internet and reopen this page.');return;}
+ client=window.supabase.createClient(project,publicKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ button.addEventListener('click',emailLink);
+ client.auth.onAuthStateChange((event)=>{
+  if(['INITIAL_SESSION','SIGNED_IN','TOKEN_REFRESHED','SIGNED_OUT'].includes(event))setTimeout(check,100);
+ });
+ check();
+}
+window.addEventListener('load',start);
+})();
+</script></body></html>
